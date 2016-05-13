@@ -1,66 +1,4 @@
-$(function initializeMap (){
 
-  var graceHopperAcademy = new google.maps.LatLng(40.705086, -74.009151);
-
-  var styleArr = [{
-    featureType: 'landscape',
-    stylers: [{ saturation: -100 }, { lightness: 60 }]
-  }, {
-    featureType: 'road.local',
-    stylers: [{ saturation: -100 }, { lightness: 40 }, { visibility: 'on' }]
-  }, {
-    featureType: 'transit',
-    stylers: [{ saturation: -100 }, { visibility: 'simplified' }]
-  }, {
-    featureType: 'administrative.province',
-    stylers: [{ visibility: 'off' }]
-  }, {
-    featureType: 'water',
-    stylers: [{ visibility: 'on' }, { lightness: 30 }]
-  }, {
-    featureType: 'road.highway',
-    elementType: 'geometry.fill',
-    stylers: [{ color: '#ef8c25' }, { lightness: 40 }]
-  }, {
-    featureType: 'road.highway',
-    elementType: 'geometry.stroke',
-    stylers: [{ visibility: 'off' }]
-  }, {
-    featureType: 'poi.park',
-    elementType: 'geometry.fill',
-    stylers: [{ color: '#b6c54c' }, { lightness: 40 }, { saturation: -40 }]
-  }];
-
-  var mapCanvas = document.getElementById('map-canvas');
-
-  var currentMap = new google.maps.Map(mapCanvas, {
-    center: graceHopperAcademy,
-    zoom: 13,
-    mapTypeId: google.maps.MapTypeId.ROADMAP,
-    styles: styleArr
-  });
-
-  var iconURLs = {
-    hotel: '/images/lodging_0star.png',
-    restaurant: '/images/restaurant.png',
-    activity: '/images/star-3.png'
-  };
-
-  function drawMarker (type, coords) {
-    var latLng = new google.maps.LatLng(coords[0], coords[1]);
-    var iconURL = iconURLs[type];
-    var marker = new google.maps.Marker({
-      icon: iconURL,
-      position: latLng
-    });
-    marker.setMap(currentMap);
-  }
-
-  // drawMarker('hotel', [40.705137, -74.007624]);
-  // drawMarker('restaurant', [40.705137, -74.013940]);
-  // drawMarker('activity', [40.716291, -73.995315]);
-
-});
 
 $(document).ready(function(){
 
@@ -80,36 +18,92 @@ $(document).ready(function(){
     $('#activity-choices').append(newactivity);
   }
 
-  var selectedHotel;
+function getCoordinates(name, model){
+  var locId;
+  var coords;
+  for(var i = 0; i < model.length; i ++){
+    if(name === model[i].name){
+      locId = model[i].placeId
+      break;
+    }
+  }
+  for(var i = 0; i < places.length; i++){
+    if(locId === places[i].id){
+      coords = places[i].location
+      break;
+    }
+  }
+  return [coords, locId];
+}
+
+  // takes an ID (STR) & a childNum (INT)
+  function addEventToItinerary(id, childNum, model){
+    $(id).closest('div').find('button').on('click', function(){
+      var selectedItem = $(this).closest('div').find('option:selected').val();
+      var coords = getCoordinates(selectedItem, model)
+      var itineraryItem = $("<div class='itinerary-item'></div>");
+      var idSpan = $("<span class='title'></span>").text(selectedItem);
+      var xbutton = $("<button class='btn btn-xs btn-danger remove btn-circle'></button>").text('x');
+      itineraryItem.append(idSpan,xbutton);
+      $('.list-group:nth(' + childNum + ')').append(itineraryItem);
+      
+
+      drawMarker(model, coords[0], coords[1]);
+    });
+  }
+
+  addEventToItinerary('#hotel-choices', 0, hotels);
+  addEventToItinerary('#restaurant-choices', 1, restaurants);
+  addEventToItinerary('#activity-choices', 2, activities);
+
+  // function removeEventFromItinerary(id, childNum, model){
+    $('#itinerary').on('click', '.remove', function () {
+      //we want to delete this
+      var itineraryDiv = $(this).closest('.itinerary-item').closest('div');
+      var whichItinerary = itineraryDiv.closest('ul').siblings().text().substr(3);
+      var nameOfPlace = $(this).closest('.itinerary-item').find('span.title').text();
+      
+      // get the model
+      var model;
+      if (whichItinerary === 'Hotel'){
+        model = hotels;
+      } else if (whichItinerary === 'Restaurants'){
+        model = restaurants;
+      } else {
+        model = activities;
+      }
+
+      // get the placeId
+      var locId;
+      for (var i = 0; i < model.length; i++) {
+        if (nameOfPlace === model[i].name){
+          locId = model[i].placeId;
+          break;
+        }
+      }
+      // console.log(locId);
+
+      // remove from markers
+      removeMarker(locId);
+      // remove element from dom
+      itineraryDiv.remove();
 
 
-  // adding choices to itinerary
-  $('#hotel-choices').closest('div').find('button').on('click', function(){
-    var selectedHotel = $(this).closest('div').find('option:selected').val();
-    var itineraryItem = $("<div class='itinerary-item'></div>");
-    var hotelSpan = $("<span class='title'></span>").text(selectedHotel);
-    var xbutton = $("<button class='btn btn-xs btn-danger remove btn-circle'></button>").text('x');
-    itineraryItem.append(hotelSpan,xbutton);
-    $('.list-group:first').append(itineraryItem);
-  });
+    });
+    // $(id).closest('div').find('button').on('click', function(){
+    //   var selectedItem = $(this).closest('div').find('option:selected').val();
+    //   var coords = getCoordinates(selectedItem, model)
+    //   var itineraryItem = $("<div class='itinerary-item'></div>");
+    //   var idSpan = $("<span class='title'></span>").text(selectedItem);
+    //   var xbutton = $("<button class='btn btn-xs btn-danger remove btn-circle'></button>").text('x');
+    //   itineraryItem.append(idSpan,xbutton);
+    //   $('.list-group:nth(' + childNum + ')').append(itineraryItem);
+    //   drawMarker(model, coords);
+    // });
+  // }
 
-    $('#restaurant-choices').closest('div').find('button').on('click', function(){
-    var selectedRest = $(this).closest('div').find('option:selected').val();
-    var itineraryItem = $("<div class='itinerary-item'></div>");
-    var restSpan = $("<span class='title'></span>").text(selectedRest);
-    var xbutton = $("<button class='btn btn-xs btn-danger remove btn-circle'></button>").text('x');
-    itineraryItem.append(restSpan,xbutton);
-    $('.list-group:nth(1)').append(itineraryItem);
-  });
 
-      $('#activity-choices').closest('div').find('button').on('click', function(){
-    var selectedActivity = $(this).closest('div').find('option:selected').val();
-    var itineraryItem = $("<div class='itinerary-item'></div>");
-    var actSpan = $("<span class='title'></span>").text(selectedActivity);
-    var xbutton = $("<button class='btn btn-xs btn-danger remove btn-circle'></button>").text('x');
-    itineraryItem.append(actSpan,xbutton);
-    $('.list-group:nth(2)').append(itineraryItem);
-  });
+
 
 
 
