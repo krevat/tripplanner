@@ -37,6 +37,12 @@ function getCoordinates(name, model){
   return [coords, locId];
 }
 
+
+  function findCurrentDay(){
+    var currentDay = $('.day-buttons').find('.current-day')
+    return +currentDay.text();
+  }
+
   // function to add event to itinerary
   // takes an ID (STR) & a childNum (INT)
   function addEventToItinerary(id, childNum, model){
@@ -50,9 +56,9 @@ function getCoordinates(name, model){
       
 
 
-      if (!markerExists(coords[1])){
+      if (!markerExists(coords[1], findCurrentDay())){
         $('.list-group:nth(' + childNum + ')').append(itineraryItem);
-        drawMarker(model, coords[0], coords[1]);
+        drawMarker(model, coords[0], coords[1], findCurrentDay());
       }
 
     });
@@ -90,7 +96,7 @@ function getCoordinates(name, model){
       // console.log(locId);
 
       // remove from markers
-      removeMarker(locId);
+      removeMarker(locId, findCurrentDay());
       // remove element from dom
       itineraryDiv.remove();
     });
@@ -102,18 +108,23 @@ function getCoordinates(name, model){
       // get the current day button,
       var currentDay = $('.day-buttons').find('.current-day')
       // console.log(currentDay)
+      wipeMap(findCurrentDay());
       var idx = +currentDay.text()
       domArr[idx] = $('#itinerary').clone()
       currentDay.removeClass('current-day')
       newDayButton.addClass('current-day')
       $('#itinerary').replaceWith(domArr[0].clone())
-      // console.log(domArr);
-      // save that day's stuff to domArr,
-      // then switch current day to newdaynum
-      // add domarr[0] to the dom / display none
-    });
+
+
+      // handle the markers
+      markerArr.push({});
+
+    }); 
 
     $('.day-buttons').on('click', '.num-btn', function(){
+
+      wipeMap(findCurrentDay());
+
       var dayNum = +$(this).text();
       var currentDay = $('.day-buttons').find('.current-day')
       var idx = +currentDay.text()
@@ -122,11 +133,16 @@ function getCoordinates(name, model){
       currentDay.removeClass('current-day')
       $(this).addClass('current-day')
       $('#itinerary').replaceWith(domArr[dayNum].clone())
+
+      fillMap(findCurrentDay());
+
     })
 
     var domArr = [];
     domArr.push($('#itinerary').clone())
-    console.log(domArr)
+    // console.log(domArr)
+
+
 
 
 });

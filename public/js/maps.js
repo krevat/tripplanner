@@ -2,7 +2,8 @@ var drawMarker;
 var iconURLs;
 var currentMap;
 var removeMarker;
-var markers;
+// var markers;
+var markerArr;
 
 $(function initializeMap (){
 
@@ -52,8 +53,13 @@ $(function initializeMap (){
     activity: '/images/star-3.png'
   };
 
-  markers = {};
-  drawMarker = function(type, coords, placeId){
+  // markerArr.push({});
+  markerArr = [];
+  markerArr.push({});
+
+  // markers = {};
+  drawMarker = function(type, coords, placeId, day){
+
     var latLng = new google.maps.LatLng(coords[0], coords[1]);
     var iconURL = iconURLs[type];
     var marker = new google.maps.Marker({
@@ -61,18 +67,36 @@ $(function initializeMap (){
       position: latLng
     });
     // console.log(placeId);
-    markers[placeId] = marker;
+    // markers[placeId] = marker;
+    markerArr[day-1][placeId] = marker;
     marker.setMap(currentMap);
     // console.log(markers);
   };
 
-  removeMarker = function(placeId){
-    markers[placeId].setMap(null);
-    markers[placeId] = null;
+  removeMarker = function(placeId, day){
+    // markers[placeId].setMap(null);
+    // markers[placeId] = null;
+    markerArr[day-1][placeId].setMap(null);
+    markerArr[day-1][placeId] = null;
   };
 
-  markerExists = function(placeId){
-    if (!markers[placeId]){
+  wipeMap = function(day){
+    console.log(day)
+    for (var marker in markerArr[day-1]){
+      // console.log(marker)
+      markerArr[day-1][marker].setMap(null);
+    }
+  }
+
+  fillMap = function(day){
+    for (var marker in markerArr[day-1]){
+      markerArr[day-1][marker].setMap(currentMap);
+    }
+  }
+
+  markerExists = function(placeId, day){
+    if (!markerArr[day-1][placeId]){
+    // if (!markers[placeId]){
       return false;
     }
     return true;
@@ -81,5 +105,7 @@ $(function initializeMap (){
   // drawMarker('hotel', [40.705137, -74.007624]);
   // drawMarker('restaurant', [40.705137, -74.013940]);
   // drawMarker('activity', [40.716291, -73.995315]);
+
+  // mapArr.push(currentMap);
 
 });
