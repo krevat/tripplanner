@@ -77,7 +77,8 @@ $(function initializeMap (){
     // markers[placeId].setMap(null);
     // markers[placeId] = null;
     markerArr[day-1][placeId].setMap(null);
-    markerArr[day-1][placeId] = null;
+    // markerArr[day-1][placeId] = null;
+    delete markerArr[day-1][placeId];
   };
 
   wipeMap = function(day){
